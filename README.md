@@ -1,25 +1,20 @@
 # Multi-Agent Research & Report Pipeline
 
-> **Stack:** LangGraph · CrewAI · FastAPI · Pydantic · Langfuse · Docker · GitHub Actions
-> **Live demo:** _add your Fly URL here after `fly deploy`_
+> **Stack:** LangGraph · FastAPI · Pydantic · Langfuse · Docker
+> **Live demo:** _部署后填写线上地址_
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/xjcway123/multi-agent-research-pipeline)
 
 4-agent orchestration pipeline (**Planner → Researcher → Writer →
-Critic**) wired across **two interchangeable engines** — a LangGraph
-typed-state machine with a conditional repair edge and a CrewAI
-sequential crew — selectable per request. Strict role boundaries are
-enforced via Pydantic structured outputs. The Critic audits every
-citation against its source snippet and triggers a one-shot Writer
-repair pass when grounding is too low, making the pipeline
-**self-correcting**. Produces **2,000+ word research reports with
-verifiable source citations** drawn from arXiv, Wikipedia, GitHub,
-Hacker News, and DuckDuckGo via a per-question router. Deployed as an
-async FastAPI service with Docker containerization, GitHub Actions
-CI/CD, and Langfuse observability on every agent and LLM call. Ships
-with a YAML-driven eval harness that scores runs on citation validity,
-grounding, source diversity, and routing precision.
-
-![demo](docs/demo.gif)
-*(Drop a 30-second screen recording at `docs/demo.gif` after first deploy.)*
+Critic**) built on a LangGraph typed-state machine with a conditional
+repair edge. Strict role boundaries enforced via Pydantic structured
+outputs. The Critic audits every citation against its source snippet
+and triggers a one-shot Writer repair pass when grounding is too low,
+making the pipeline **self-correcting**. Produces research reports
+with **verifiable source citations** drawn from arXiv, Wikipedia,
+GitHub, Hacker News, and DuckDuckGo via a per-question router.
+Deployed as an async FastAPI service with Docker containerization
+and Langfuse observability on every agent and LLM call.
 
 ---
 
