@@ -1,0 +1,54 @@
+# Curated eval set — 10 topics spanning the routing categories so we
+# exercise each source client at least twice. `expected_sources` is what
+# the router *should* pick (used for routing_precision); it's a non-empty
+# subset, not the full set, so DuckDuckGo (always included) is omitted.
+topics:
+  - topic: "What is GraphRAG?"
+    category: concept-define
+    expected_sources: [wikipedia]
+    notes: "Definition query; should hit Wikipedia via 'what is'."
+
+  - topic: "History of vector databases"
+    category: concept-define
+    expected_sources: [wikipedia]
+    notes: "History pattern; Wikipedia trigger."
+
+  - topic: "State of the art transformer architectures for long-context reasoning"
+    category: paper
+    expected_sources: [arxiv]
+    notes: "SOTA + transformer + architecture; arXiv-heavy."
+
+  - topic: "Recent advances in RLHF and DPO for alignment"
+    category: paper
+    expected_sources: [arxiv]
+    notes: "RLHF/DPO acronyms + recent; arXiv + HN."
+
+  - topic: "Best open-source vector database libraries"
+    category: code-tools
+    expected_sources: [github]
+    notes: "best + open-source + libraries; GitHub trigger."
+
+  - topic: "Compare LangGraph vs CrewAI vs AutoGen frameworks"
+    category: code-tools
+    expected_sources: [github]
+    notes: "compare + vs + framework; GitHub trigger."
+
+  - topic: "Latest trends in agentic AI 2026"
+    category: trend
+    expected_sources: [hackernews]
+    notes: "latest + trends + year; HN trigger."
+
+  - topic: "Current discussion on AI regulation in the EU"
+    category: trend
+    expected_sources: [hackernews]
+    notes: "current + discussion; HN trigger."
+
+  - topic: "How does LoRA fine-tuning work and what tools support it"
+    category: mixed
+    expected_sources: [arxiv, github]
+    notes: "fine-tuning (arXiv) + tools (GitHub)."
+
+  - topic: "What is GraphRAG and which libraries implement it"
+    category: mixed
+    expected_sources: [wikipedia, github]
+    notes: "what is (Wikipedia) + libraries (GitHub)."

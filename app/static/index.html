@@ -1,0 +1,781 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Jacey · 多智能体研究报告生成系统</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        :root {
+            --bg: #0a0a0b;
+            --bg-elev: #14141a;
+            --bg-card: #1a1a22;
+            --border: #26262e;
+            --text: #e8e8ee;
+            --text-muted: #888892;
+            --accent: #7c5cff;
+            --accent-glow: rgba(124, 92, 255, 0.4);
+            --success: #5cf094;
+            --warning: #ffb84d;
+            --error: #ff6b6b;
+            --info: #5cb8ff;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.6;
+            background-image:
+                radial-gradient(1000px circle at 0% 0%, rgba(124, 92, 255, 0.06), transparent 40%),
+                radial-gradient(800px circle at 100% 100%, rgba(92, 184, 255, 0.04), transparent 40%);
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 2.5rem 1.5rem;
+        }
+
+        header {
+            margin-bottom: 2.5rem;
+        }
+        .title {
+            font-size: clamp(1.75rem, 4vw, 2.5rem);
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #fff 0%, #a8a8ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-top: 0.4rem;
+        }
+        .arch-line {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            flex-wrap: wrap;
+        }
+        .arch-line span { color: var(--accent); }
+
+        .form {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .input {
+            flex: 1;
+            min-width: 280px;
+            padding: 0.75rem 1rem;
+            background: var(--bg-elev);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 0.95rem;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+        .select {
+            padding: 0.75rem 1rem;
+            background: var(--bg-elev);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 0.95rem;
+            cursor: pointer;
+        }
+        .btn {
+            padding: 0.75rem 1.5rem;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-family: inherit;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+            box-shadow: 0 4px 16px var(--accent-glow);
+        }
+        .btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 20px var(--accent-glow); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.55rem;
+            padding: 0.65rem 0.9rem;
+            background: var(--bg-elev);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            cursor: pointer;
+            user-select: none;
+            transition: border-color 0.15s, color 0.15s;
+        }
+        .toggle:hover { border-color: var(--accent); }
+        .toggle input { accent-color: var(--accent); width: 16px; height: 16px; cursor: pointer; }
+        .toggle.on { color: var(--text); border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent-glow); }
+        .toggle .badge {
+            font-size: 0.7rem;
+            padding: 0.1rem 0.4rem;
+            border-radius: 4px;
+            background: rgba(120, 80, 200, 0.18);
+            color: #c7b3f5;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+        }
+
+        .examples {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        .example-chip {
+            padding: 0.4rem 0.8rem;
+            background: var(--bg-elev);
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .example-chip:hover {
+            border-color: var(--accent);
+            color: var(--text);
+        }
+
+        .stages {
+            display: flex;
+            justify-content: space-between;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+        .stages::before {
+            content: '';
+            position: absolute;
+            top: 18px;
+            left: 18px;
+            right: 18px;
+            height: 2px;
+            background: var(--border);
+            z-index: 0;
+        }
+        .stage {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            position: relative;
+            z-index: 1;
+        }
+        .stage-dot {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--bg-elev);
+            border: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            transition: all 0.3s;
+        }
+        .stage.active .stage-dot {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+            box-shadow: 0 0 0 6px var(--accent-glow);
+            animation: pulse 1.5s infinite;
+        }
+        .stage.done .stage-dot {
+            background: var(--success);
+            border-color: var(--success);
+            color: var(--bg);
+        }
+        .stage-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-align: center;
+            font-weight: 500;
+        }
+        .stage.active .stage-label,
+        .stage.done .stage-label { color: var(--text); }
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 6px var(--accent-glow); }
+            50% { box-shadow: 0 0 0 12px transparent; }
+        }
+
+        .panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1.25rem 1.5rem;
+            margin-bottom: 1rem;
+            opacity: 0;
+            transform: translateY(8px);
+            transition: opacity 0.3s, transform 0.3s;
+        }
+        .panel.visible { opacity: 1; transform: translateY(0); }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+        }
+        .panel-title {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--accent);
+            font-weight: 700;
+        }
+        .panel-meta {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .routing-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 0.55rem 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.85rem;
+        }
+        .routing-row:last-child { border-bottom: none; }
+        .routing-q {
+            flex: 1;
+            color: var(--text);
+            min-width: 0;
+        }
+        .routing-pills {
+            display: flex;
+            gap: 0.3rem;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+        .source-pill {
+            font-size: 0.7rem;
+            padding: 0.2rem 0.55rem;
+            border-radius: 999px;
+            background: var(--bg-elev);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .source-pill.arxiv { color: #b91c1c; border-color: #b91c1c; }
+        .source-pill.wikipedia { color: #888892; border-color: #555560; }
+        .source-pill.github { color: #5cb8ff; border-color: #5cb8ff; }
+        .source-pill.hackernews { color: #ff6b35; border-color: #ff6b35; }
+        .source-pill.duckduckgo { color: #fbbf24; border-color: #fbbf24; }
+
+        .questions { list-style: none; }
+        .questions li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9rem;
+            color: var(--text);
+        }
+        .questions li:last-child { border-bottom: none; }
+        .questions li::before {
+            content: '→ ';
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .sources { display: flex; flex-direction: column; gap: 0.5rem; }
+        .source {
+            padding: 0.6rem 0.75rem;
+            background: var(--bg-elev);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            color: var(--text);
+            transition: border-color 0.15s;
+        }
+        .source:hover { border-color: var(--accent); }
+        .source-num {
+            min-width: 22px;
+            height: 22px;
+            background: var(--accent);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .source-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .source-title {
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .source-url {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .report {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 2rem;
+            margin-top: 1rem;
+        }
+        .report-meta {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            flex-wrap: wrap;
+        }
+        .report-meta strong { color: var(--text); font-weight: 600; }
+
+        .report-content { line-height: 1.75; }
+        .report-content h1 { font-size: 1.6rem; margin: 1.5rem 0 0.75rem; font-weight: 700; letter-spacing: -0.01em; }
+        .report-content h2 { font-size: 1.25rem; margin: 1.5rem 0 0.5rem; font-weight: 700; color: var(--accent); }
+        .report-content h3 { font-size: 1.05rem; margin: 1.25rem 0 0.5rem; font-weight: 600; }
+        .report-content h2:first-child, .report-content h3:first-child { margin-top: 0; }
+        .report-content p { margin-bottom: 0.9rem; }
+        .report-content ul, .report-content ol { margin: 0.5rem 0 1rem 1.5rem; }
+        .report-content li { margin-bottom: 0.4rem; }
+        .report-content code {
+            background: var(--bg-elev);
+            padding: 0.1rem 0.4rem;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85em;
+        }
+        .report-content blockquote {
+            border-left: 3px solid var(--accent);
+            padding-left: 1rem;
+            color: var(--text-muted);
+            margin: 1rem 0;
+        }
+
+        .error-msg {
+            background: rgba(255, 107, 107, 0.1);
+            border: 1px solid var(--error);
+            color: var(--error);
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .api-info {
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
+        }
+        .api-info h3 {
+            font-size: 1rem;
+            margin-bottom: 0.75rem;
+        }
+        .api-info code {
+            background: var(--bg-elev);
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            display: block;
+            white-space: pre-wrap;
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+        }
+        .api-info code .key { color: var(--info); }
+        .api-info code .val { color: var(--success); }
+        .api-info p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 0.75rem;
+        }
+        .api-info a { color: var(--accent); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1 class="title">多智能体研究报告生成系统</h1>
+            <p class="subtitle">Planner → Researcher → Writer → Critic 四 Agent 协作，自动规划、检索、撰写并校验引用，生成可溯源的研究报告</p>
+            <div class="arch-line">
+                <span>Claude (Sonnet)</span> plans
+                <span>→</span>
+                <span>multi-source router</span>
+                <span>→</span>
+                <span>GLM-5-turbo</span> researches & writes
+                <span>•</span>
+                arXiv + Wikipedia + GitHub + HN + DDG
+            </div>
+        </header>
+
+        <div class="form">
+            <input
+                id="topic"
+                class="input"
+                placeholder="Topic to research..."
+                value="How RAG systems are evolving in 2026"
+            />
+            <select id="depth" class="select">
+                <option value="brief">Brief</option>
+                <option value="detailed" selected>Detailed</option>
+            </select>
+            <select id="engine" class="select" title="Orchestration framework" style="display:none">
+                <option value="langgraph" selected>LangGraph</option>
+            </select>
+            <label id="opusToggle" class="toggle" title="Run the planner on Claude Opus 4.6 instead of Sonnet" style="display:none">
+                <input type="checkbox" id="useOpus" />
+                <span>Opus planner</span>
+                <span class="badge">4.6</span>
+            </label>
+            <button id="run" class="btn">Run research</button>
+        </div>
+
+        <div class="examples">
+            <span class="example-chip" data-topic="What is GraphRAG and when should I use it">GraphRAG explained</span>
+            <span class="example-chip" data-topic="LangGraph vs CrewAI for production agents">LangGraph vs CrewAI</span>
+            <span class="example-chip" data-topic="Cross-encoder reranking in RAG pipelines">Reranking deep-dive</span>
+            <span class="example-chip" data-topic="Best vector databases for 2026">Vector DB comparison</span>
+        </div>
+
+        <div id="status"></div>
+
+        <div class="stages" id="stages" style="display:none">
+            <div class="stage" data-node="planner">
+                <div class="stage-dot">1</div>
+                <div class="stage-label">Plan</div>
+            </div>
+            <div class="stage" data-node="researcher">
+                <div class="stage-dot">2</div>
+                <div class="stage-label">Search & Research</div>
+            </div>
+            <div class="stage" data-node="writer">
+                <div class="stage-dot">3</div>
+                <div class="stage-label">Write</div>
+            </div>
+        </div>
+
+        <div class="panel" id="plan-panel">
+            <div class="panel-header">
+                <span class="panel-title">Research Plan</span>
+                <span class="panel-meta" id="plan-meta"></span>
+            </div>
+            <ul class="questions" id="plan-list"></ul>
+        </div>
+
+        <div class="panel" id="routing-panel">
+            <div class="panel-header">
+                <span class="panel-title">Source Routing</span>
+                <span class="panel-meta" id="routing-meta"></span>
+            </div>
+            <div id="routing-list"></div>
+        </div>
+
+        <div class="panel" id="sources-panel">
+            <div class="panel-header">
+                <span class="panel-title">Sources Found</span>
+                <span class="panel-meta" id="sources-meta"></span>
+            </div>
+            <div class="sources" id="sources-list"></div>
+        </div>
+
+        <div id="report-container"></div>
+
+        <div class="api-info">
+            <h3>API endpoints</h3>
+            <p><strong>Streaming (SSE)</strong> — what this page uses</p>
+            <code><span class="key">POST</span> /research/stream
+<span class="key">Content-Type:</span> application/json
+
+{
+  <span class="val">"topic"</span>: "your topic here",
+  <span class="val">"depth"</span>: "brief" | "detailed"
+}</code>
+            <p style="margin-top:1rem"><strong>Sync (waits for full report)</strong></p>
+            <code><span class="key">POST</span> /research/
+<span class="key">Content-Type:</span> application/json
+
+{
+  <span class="val">"topic"</span>: "your topic here",
+  <span class="val">"depth"</span>: "brief" | "detailed"
+}</code>
+            <p style="margin-top:1rem">Full Swagger docs at <a href="/docs">/docs</a></p>
+        </div>
+    </div>
+
+    <script>
+        const $ = id => document.getElementById(id);
+        const topicEl = $('topic');
+        const depthEl = $('depth');
+        const engineEl = $('engine');
+        const opusEl = $('useOpus');
+        const opusToggleEl = $('opusToggle');
+        opusEl.addEventListener('change', () => {
+            opusToggleEl.classList.toggle('on', opusEl.checked);
+        });
+        const runBtn = $('run');
+        const statusEl = $('status');
+        const stagesEl = $('stages');
+        const planPanel = $('plan-panel');
+        const planList = $('plan-list');
+        const planMeta = $('plan-meta');
+        const routingPanel = $('routing-panel');
+        const routingList = $('routing-list');
+        const routingMeta = $('routing-meta');
+        const sourcesPanel = $('sources-panel');
+        const sourcesList = $('sources-list');
+        const sourcesMeta = $('sources-meta');
+        const reportContainer = $('report-container');
+
+        document.querySelectorAll('.example-chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                topicEl.value = chip.dataset.topic;
+            });
+        });
+
+        function resetUI() {
+            statusEl.innerHTML = '';
+            reportContainer.innerHTML = '';
+            planList.innerHTML = '';
+            routingList.innerHTML = '';
+            sourcesList.innerHTML = '';
+            planPanel.classList.remove('visible');
+            routingPanel.classList.remove('visible');
+            sourcesPanel.classList.remove('visible');
+            stagesEl.style.display = 'none';
+            document.querySelectorAll('.stage').forEach(s => s.classList.remove('active', 'done'));
+        }
+
+        function setStage(node, state) {
+            document.querySelectorAll('.stage').forEach(s => {
+                if (s.dataset.node === node) s.classList.add(state);
+            });
+            // Mark previous stages as done when a new one starts
+            const order = ['planner', 'researcher', 'writer'];
+            const idx = order.indexOf(node);
+            if (state === 'active' && idx > 0) {
+                order.slice(0, idx).forEach(prev => {
+                    const el = document.querySelector(`.stage[data-node="${prev}"]`);
+                    el.classList.remove('active');
+                    el.classList.add('done');
+                });
+            }
+        }
+
+        async function runResearch() {
+            const topic = topicEl.value.trim();
+            if (!topic) return;
+
+            resetUI();
+            runBtn.disabled = true;
+            runBtn.textContent = 'Running...';
+            stagesEl.style.display = 'flex';
+
+            try {
+                const res = await fetch('/research/stream', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        topic,
+                        depth: depthEl.value,
+                        use_opus_planner: opusEl.checked,
+                        engine: engineEl.value,
+                    }),
+                });
+
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+                const reader = res.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+
+                while (true) {
+                    const { value, done } = await reader.read();
+                    if (done) break;
+                    buffer += decoder.decode(value, { stream: true });
+
+                    let sepIdx;
+                    while ((sepIdx = buffer.indexOf('\n\n')) !== -1) {
+                        const block = buffer.slice(0, sepIdx);
+                        buffer = buffer.slice(sepIdx + 2);
+                        handleSSEBlock(block);
+                    }
+                }
+            } catch (err) {
+                statusEl.innerHTML = `<div class="error-msg">Error: ${err.message}</div>`;
+            } finally {
+                runBtn.disabled = false;
+                runBtn.textContent = 'Run research';
+            }
+        }
+
+        function handleSSEBlock(block) {
+            const lines = block.split('\n');
+            let event = '';
+            let data = '';
+            for (const line of lines) {
+                if (line.startsWith('event: ')) event = line.slice(7).trim();
+                else if (line.startsWith('data: ')) data += line.slice(6);
+            }
+            if (!event || !data) return;
+            try {
+                const parsed = JSON.parse(data);
+                handleEvent(event, parsed);
+            } catch (e) {
+                console.warn('parse error', e, data);
+            }
+        }
+
+        function handleEvent(event, data) {
+            switch (event) {
+                case 'start':
+                    break;
+                case 'stage':
+                    setStage(data.node, 'active');
+                    break;
+                case 'plan':
+                    planMeta.textContent = `${data.count} questions`;
+                    planList.innerHTML = data.questions
+                        .filter(q => q.length > 5)
+                        .map(q => `<li>${escapeHtml(q.replace(/\*\*/g, ''))}</li>`)
+                        .join('');
+                    planPanel.classList.add('visible');
+                    break;
+                case 'routing':
+                    const routes = data.per_question || [];
+                    routingMeta.textContent = `${routes.length} questions routed`;
+                    routingList.innerHTML = routes.map(r => `
+                        <div class="routing-row">
+                            <div class="routing-q">${escapeHtml(r.question)}</div>
+                            <div class="routing-pills">
+                                ${(r.sources || []).map(s => `<span class="source-pill ${s}">${s}</span>`).join('')}
+                            </div>
+                        </div>
+                    `).join('');
+                    routingPanel.classList.add('visible');
+                    break;
+                case 'sources':
+                    sourcesMeta.textContent = `${data.found} sources`;
+                    sourcesList.innerHTML = data.preview.map((s, i) => `
+                        <a class="source" href="${escapeAttr(s.url)}" target="_blank" rel="noopener">
+                            <span class="source-num">${i + 1}</span>
+                            <div class="source-info">
+                                <div class="source-title">${escapeHtml(s.title)}</div>
+                                <div class="source-url">${escapeHtml(s.url)}</div>
+                            </div>
+                        </a>
+                    `).join('');
+                    sourcesPanel.classList.add('visible');
+                    break;
+                case 'research':
+                    break;
+                case 'complete':
+                    document.querySelectorAll('.stage').forEach(s => {
+                        s.classList.remove('active');
+                        s.classList.add('done');
+                    });
+                    renderReport(data);
+                    break;
+                case 'error':
+                    statusEl.innerHTML = `<div class="error-msg">Pipeline error: ${escapeHtml(data.message || 'unknown')}</div>`;
+                    break;
+            }
+        }
+
+        function renderReport(report) {
+            const sourcesHtml = (report.sources || []).map((s, i) => `
+                <a class="source" href="${escapeAttr(s.url)}" target="_blank" rel="noopener">
+                    <span class="source-num">${i + 1}</span>
+                    <div class="source-info">
+                        <div class="source-title">${escapeHtml(s.title)}</div>
+                        <div class="source-url">${escapeHtml(s.url)}</div>
+                    </div>
+                </a>
+            `).join('');
+
+            reportContainer.innerHTML = `
+                <div class="report">
+                    <div class="report-meta">
+                        <span><strong>Topic:</strong> ${escapeHtml(report.topic)}</span>
+                        <span><strong>Words:</strong> ${report.word_count}</span>
+                        <span><strong>Sources:</strong> ${report.sources?.length ?? 0}</span>
+                        <span><strong>Findings:</strong> ${report.key_findings?.length ?? 0}</span>
+                    </div>
+                    <div class="report-content">${marked.parse(report.full_report || '')}</div>
+                </div>
+                ${sourcesHtml ? `
+                    <div class="panel visible" style="margin-top:1rem">
+                        <div class="panel-header">
+                            <span class="panel-title">All Sources Used</span>
+                            <span class="panel-meta">${report.sources.length} URLs</span>
+                        </div>
+                        <div class="sources">${sourcesHtml}</div>
+                    </div>
+                ` : ''}
+            `;
+        }
+
+        function escapeHtml(s) {
+            return String(s ?? '').replace(/[&<>"']/g, c => (
+                { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+            ));
+        }
+        function escapeAttr(s) { return escapeHtml(s); }
+
+        runBtn.addEventListener('click', runResearch);
+        topicEl.addEventListener('keydown', e => {
+            if (e.key === 'Enter') runResearch();
+        });
+    </script>
+</body>
+</html>

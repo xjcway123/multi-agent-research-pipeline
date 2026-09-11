@@ -1,0 +1,39 @@
+# fly.toml — Fly.io deployment config for the research pipeline demo.
+#
+# Quick start:
+#   1. brew install flyctl  (or `iwr https://fly.io/install.ps1 | iex` on Windows)
+#   2. fly auth login
+#   3. fly launch --copy-config --no-deploy           # creates the app
+#   4. fly secrets set LLM_API_KEY=...                # GLM / OpenAI / OpenRouter key
+#                       LLM_BASE_URL=https://...
+#                       LLM_MODEL=glm-5-turbo
+#   5. fly deploy
+#
+# The free tier covers a single small instance comfortably for a portfolio demo.
+
+app = "multi-agent-research"      # change to a unique name on first launch
+primary_region = "iad"            # closest to most US recruiters; switch to e.g. "fra" for EU
+
+[build]
+
+[env]
+  PORT = "8000"
+  LOG_LEVEL = "INFO"
+
+[http_service]
+  internal_port = 8000
+  force_https = true
+  auto_stop_machines = "stop"     # spins down when idle to stay on free tier
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ["app"]
+
+  [http_service.concurrency]
+    type = "requests"
+    hard_limit = 25
+    soft_limit = 20
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 512
